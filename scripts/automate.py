@@ -29,22 +29,34 @@ DEFAULT_LANGUAGE_IMAGE_NO_EXT = "programming-languages"
 
 AUTO_GEN_NOTE = "AUTO-GENERATED -- PLEASE DO NOT EDIT!"
 CONTRIBUTING_NOTE = "See .github/CONTRIBUTING.md for further details."
-PROGRAM_MD_FILENAMES = ["how-to-implement-the-solution.md", "how-to-run-the-solution.md"]
+PROGRAM_MD_FILENAMES = [
+    "how-to-implement-the-solution.md",
+    "how-to-run-the-solution.md",
+]
 PROJECT_MD_FILENAMES = ["description.md", "requirements.md"]
 LANGUAGE_MD_FILENAMES = ["description.md"]
 
 
-def _add_section(doc: snakemd.Document, source: str, source_instance: str, section: str, level: int = 2) -> None:
+def _add_section(
+    doc: snakemd.Document,
+    source: str,
+    source_instance: str,
+    section: str,
+    level: int = 2,
+) -> None:
     """Adds a section to the document.
 
     :param snakemd.Document doc: the document to add the section to.
-    :param str source: the specific source folder to pull from (e.g., languages).
-    :param str source_instance: the specific source instance to pull from (e.g., c-plus-plus).
+    :param str source: the specific source folder to pull from (e.g.,
+        languages).
+    :param str source_instance: the specific source instance to pull from (e.g.,
+        c-plus-plus).
     :param str section: the section to add to the document (e.g., Description).
     """
     doc.add_heading(section, level=level)
     fp = pathlib.Path(
-        f"sources/{source}/{source_instance}/{section.lower().replace(' ', '-')}.md")
+        f"sources/{source}/{source_instance}/{section.lower().replace(' ', '-')}.md",
+    )
     if fp.exists():
         log.info("Adding %s section to document from source, %s", section, fp)
         doc.add_raw(fp.read_text(encoding="utf-8"))
@@ -52,26 +64,45 @@ def _add_section(doc: snakemd.Document, source: str, source_instance: str, secti
         log.warning("Failed to find %s in %s", section, fp)
         doc.add_paragraph(
             f"No '{section}' section available. Please consider contributing.",
-        ).insert_link("Please consider contributing", "https://github.com/TheRenegadeCoder/sample-programs-website")
+        ).insert_link(
+            "Please consider contributing",
+            "https://github.com/TheRenegadeCoder/sample-programs-website",
+        )
 
 
-def _add_testing_section(doc: snakemd.Document, source: str, source_instance: str) -> None:
-    valid_path = pathlib.Path(f"sources/{source}/{source_instance}/valid-tests.md")
-    invalid_path = pathlib.Path(f"sources/{source}/{source_instance}/invalid-tests.md")
-    auto_gen_path = pathlib.Path(f"{AUTO_GEN_TEST_DOC_DIR}/{source_instance}/testing.md")
+def _add_testing_section(
+    doc: snakemd.Document,
+    source: str,
+    source_instance: str,
+) -> None:
+    valid_path = pathlib.Path(
+        f"sources/{source}/{source_instance}/valid-tests.md",
+    )
+    invalid_path = pathlib.Path(
+        f"sources/{source}/{source_instance}/invalid-tests.md",
+    )
+    auto_gen_path = pathlib.Path(
+        f"{AUTO_GEN_TEST_DOC_DIR}/{source_instance}/testing.md",
+    )
     if auto_gen_path.exists():
         _add_section(
-            doc, pathlib.Path(AUTO_GEN_TEST_DOC_DIR).name, source_instance, "Testing", level=2,
+            doc,
+            pathlib.Path(AUTO_GEN_TEST_DOC_DIR).name,
+            source_instance,
+            "Testing",
+            level=2,
         )
     elif valid_path.exists() and invalid_path.exists():
         doc.add_heading("Testing", level=2)
         doc.add_paragraph(
             f"""
-                Every project in the Sample Programs repo should be tested. In this section,
-                we specify the set of tests specific to {" ".join(source_instance.split('-')).title()}.
-                To keep things simple, we split up testing into two subsets: valid and invalid.
-                Valid tests refer to tests that occur under correct input conditions. Invalid
-                tests refer to tests that occur on bad input (e.g., letters instead of numbers).
+                Every project in the Sample Programs repo should be tested. In
+                this section, we specify the set of tests specific to
+                {" ".join(source_instance.split("-")).title()}. To keep things
+                simple, we split up testing into two subsets: valid and invalid.
+                Valid tests refer to tests that occur under correct input
+                conditions. Invalid tests refer to tests that occur on bad input
+                (e.g., letters instead of numbers).
                 """,
         )
         _add_section(doc, source, source_instance, "Valid Tests", level=3)
@@ -80,7 +111,11 @@ def _add_testing_section(doc: snakemd.Document, source: str, source_instance: st
         _add_section(doc, source, source_instance, "Testing", level=2)
 
 
-def _add_project_article_section(doc: snakemd.Document, repo: subete.Repo, project: subete.Project) -> None:
+def _add_project_article_section(
+    doc: snakemd.Document,
+    repo: subete.Repo,
+    project: subete.Project,
+) -> None:
     """Generates a list of articles for each project page.
 
     :param snakemd.Document doc: the document to add the section to.
@@ -113,15 +148,23 @@ def _add_project_article_section(doc: snakemd.Document, repo: subete.Repo, proje
         log.warning("Failed to find any articles for %s", project)
         doc.add_paragraph(
             "No articles available. Please consider contributing.",
-        ).insert_link("Please consider contributing", "https://github.com/TheRenegadeCoder/sample-programs-website")
+        ).insert_link(
+            "Please consider contributing",
+            "https://github.com/TheRenegadeCoder/sample-programs-website",
+        )
 
 
-def _add_language_article_section(doc: snakemd.Document, repo: subete.Repo, language: str) -> None:
+def _add_language_article_section(
+    doc: snakemd.Document,
+    repo: subete.Repo,
+    language: str,
+) -> None:
     """Generates a list of articles for each language page.
 
     :param snakemd.Document doc: the document to add the section to.
     :param subete.Repo repo: the repo to pull from.
-    :param str language: the language to add to the document in its lookup form (e.g., Python).
+    :param str language: the language to add to the document in its lookup form
+        (e.g., Python).
     """
     doc.add_heading("Articles", level=2)
     num_articles = len(list(repo[language]))
@@ -158,7 +201,8 @@ def _split_text(text: str) -> tuple[str, str]:
     if best_index == -1:
         return text, ""
 
-    return text[:best_index], text[best_index + 1:]
+    return text[:best_index], text[best_index + 1 :]
+
 
 def _generate_front_matter(
     doc: snakemd.Document,
@@ -172,8 +216,8 @@ def _generate_front_matter(
 
     :param snakemd.Document doc: the document to add the front matter to.
     :param str title: the title of the document.
-    :param Optional[List[Optional[datetime]]] times: optional list of
-        date/times that may be `None`.
+    :param Optional[List[Optional[datetime]]] times: optional list of date/times
+        that may be `None`.
     :param str image: optional filename of the image.
     :param Set[str] authors: optional list of authors
     :param Iterable[str] tags: optional list of tags
@@ -201,22 +245,32 @@ def _generate_front_matter(
     if tags:
         front_matter["tags"] = sorted(tags, key=str.casefold)
 
-    yaml_block = yaml.safe_dump(front_matter, sort_keys=True, allow_unicode=True)
+    yaml_block = yaml.safe_dump(
+        front_matter,
+        sort_keys=True,
+        allow_unicode=True,
+    )
     doc.add_raw(f"---\n{yaml_block}---")
 
 
 def _generate_no_edit_note(
-    doc: snakemd.Document, source: str, source_instance: str, filenames: list[str],
+    doc: snakemd.Document,
+    source: str,
+    source_instance: str,
+    filenames: list[str],
 ) -> None:
     """Generates "DO NOT EDIT" note
 
     :param snakemd.Document doc: the document to add the note to.
-    :param str source: the specific source folder to pull from (e.g., languages).
-    :param str source_instance: the specific source instance to pull from (e.g., c-plus-plus).
+    :param str source: the specific source folder to pull from (e.g.,
+        languages).
+    :param str source_instance: the specific source instance to pull from (e.g.,
+        c-plus-plus).
     :param list[str] filenames: the markdown filenames
     """
     note_filenames = "\n".join(
-        f"- sources/{source}/{source_instance}/{filename}" for filename in filenames
+        f"- sources/{source}/{source_instance}/{filename}"
+        for filename in filenames
     )
     note = f"""\
 <!--
@@ -231,10 +285,14 @@ Instead, please edit the following:
     doc.add_raw(note)
 
 
-def _generate_sample_program_index(program: subete.SampleProgram, path: pathlib.Path) -> None:
+def _generate_sample_program_index(
+    program: subete.SampleProgram,
+    path: pathlib.Path,
+) -> None:
     """Creates a sample program documentation file.
 
-    :param subete.SampleProgram program: the sample program to create the documentation for.
+    :param subete.SampleProgram program: the sample program to create the
+        documentation for.
     :param pathlib.Path path: the path to the documentation file.
     """
     doc: snakemd.Document = snakemd.new_doc()
@@ -249,9 +307,13 @@ def _generate_sample_program_index(program: subete.SampleProgram, path: pathlib.
         times=_get_program_datetimes(program),
         image=_get_program_image(program),
         authors=authors | doc_authors,
-        tags=[program.language_pathlike_name(), program.project_pathlike_name()],
+        tags=[
+            program.language_pathlike_name(),
+            program.project_pathlike_name(),
+        ],
     )
-    _generate_no_edit_note(doc,
+    _generate_no_edit_note(
+        doc,
         str(root_path.parent),
         program.language_pathlike_name(),
         PROGRAM_MD_FILENAMES,
@@ -260,11 +322,12 @@ def _generate_sample_program_index(program: subete.SampleProgram, path: pathlib.
     program_escaped = _markdown_escape(str(program))
     language_escaped = _markdown_escape(program.language_name())
     doc.add_paragraph(
-        f"Welcome to the {program_escaped} page! Here, you'll find the source code for this program "
-        f"as well as a description of how the program works.",
-    ) \
-        .insert_link(language_escaped, program.language_collection().lang_docs_url()) \
-        .insert_link(program.project_name(), program.project().requirements_url())
+        f"Welcome to the {program_escaped} page! Here, you'll find the source code "
+        "for this program as well as a description of how the program works.",
+    ).insert_link(
+        language_escaped,
+        program.language_collection().lang_docs_url(),
+    ).insert_link(program.project_name(), program.project().requirements_url())
     doc.add_heading("Current Solution", level=2)
 
     if program.image_type():
@@ -278,11 +341,15 @@ def _generate_sample_program_index(program: subete.SampleProgram, path: pathlib.
         )
     else:
         doc.add_paragraph("{% raw %}")
-        doc.add_code(program.code(), lang=language_escaped.lower().replace(" ", "_"))
+        doc.add_code(
+            program.code(),
+            lang=language_escaped.lower().replace(" ", "_"),
+        )
         doc.add_paragraph("{% endraw %}")
 
     doc.add_paragraph(f"{program_escaped} was written by:").insert_link(
-        language_escaped, program.language_collection().lang_docs_url(),
+        language_escaped,
+        program.language_collection().lang_docs_url(),
     )
     _add_authors_to_doc(doc, authors)
 
@@ -291,22 +358,32 @@ def _generate_sample_program_index(program: subete.SampleProgram, path: pathlib.
         doc.add_paragraph("This article was written by:")
         _add_authors_to_doc(doc, doc_authors)
 
-    doc.add_paragraph("If you see anything you'd like to change or update, please consider contributing.") \
-        .insert_link("please consider contributing", "https://github.com/TheRenegadeCoder/sample-programs")
+    doc.add_paragraph(
+        "If you see anything you'd like to change or update, please consider "
+        "contributing.",
+    ).insert_link(
+        "please consider contributing",
+        "https://github.com/TheRenegadeCoder/sample-programs",
+    )
 
     created_at: datetime = program.created()
     modified: datetime = program.modified()
     doc_modified: datetime | None = program.doc_modified()
     if created_at != modified and doc_modified and doc_modified < modified:
-        datetime_format = "%b %d %Y %H:%M:%S"
-        doc.add_paragraph(
-            "**Note**: The solution shown above is the current solution in the Sample "
-            f"Programs repository as of {modified.strftime(datetime_format)}. "
-            f"The solution was first committed on {created_at.strftime(datetime_format)}. "
-            f"The documentation was last updated on {doc_modified.strftime(datetime_format)}. "
-            "As a result, documentation below may be outdated.",
+        fmt = "%b %d %Y %H:%M:%S"
+
+        msg = (
+            "**Note**: The solution shown above is the current solution in the "
+            "Sample Programs repository as of "
+            f"{modified.strftime(fmt)}. "
+            f"The solution was first committed on "
+            f"{created_at.strftime(fmt)}. "
+            f"The documentation was last updated on "
+            f"{doc_modified.strftime(fmt)}. "
+            "As a result, documentation below may be outdated."
         )
 
+        doc.add_paragraph(msg)
     _add_section(
         doc,
         str(root_path.parent),
@@ -325,13 +402,20 @@ def _generate_sample_program_index(program: subete.SampleProgram, path: pathlib.
         log.exception("Failed to write %s", path)
 
 
-def _get_program_datetimes(program: subete.SampleProgram) -> list[datetime | None]:
+def _get_program_datetimes(
+    program: subete.SampleProgram,
+) -> list[datetime | None]:
     """Get list of date/times for a sample program.
 
     :param subete.SampleProgram program: Sample program to get date/times for.
     :return: List of date/times for sample program
     """
-    return [program.created(), program.modified(), program.doc_created(), program.doc_modified()]
+    return [
+        program.created(),
+        program.modified(),
+        program.doc_created(),
+        program.doc_modified(),
+    ]
 
 
 def _add_authors_to_doc(doc: snakemd.Document, authors: set[str]) -> None:
@@ -346,12 +430,15 @@ def _add_authors_to_doc(doc: snakemd.Document, authors: set[str]) -> None:
 def _get_program_image(program: subete.SampleProgram) -> str | None:
     """Gets the filename of the image for a sample program
 
-    :param subete.SampleProgram program: the sample program to get the image for.
+    :param subete.SampleProgram program: the sample program to get the image
+        for.
     :return: Filename of image if found, None otherwise.
     """
     project_path = program.project_pathlike_name()
     language_path = program.language_pathlike_name()
-    image_path = pathlib.Path(f"sources/programs/{project_path}/{language_path}")
+    image_path = pathlib.Path(
+        f"sources/programs/{project_path}/{language_path}",
+    )
     return _get_image(
         image_path,
         f"{project_path}-in-{language_path}",
@@ -363,8 +450,8 @@ def _get_program_image(program: subete.SampleProgram) -> str | None:
 def _get_project_image(project: subete.Project) -> str | None:
     """Gets the filename of the image for a project
 
-    :param subete.Project project: the project to create the index file
-        for in the normalized form (e.g., hello-world).
+    :param subete.Project project: the project to create the index file for in
+        the normalized form (e.g., hello-world).
     :return: Filename of image if found, None otherwise.
     """
     project_path = project.pathlike_name()
@@ -382,12 +469,17 @@ def _get_default_project_image() -> str | None:
 
     :return: Filename of image if found, None otherwise
     """
-    return _get_image(pathlib.Path("sources/projects"), DEFAULT_PROJECT_IMAGE_NO_EXT)
+    return _get_image(
+        pathlib.Path("sources/projects"),
+        DEFAULT_PROJECT_IMAGE_NO_EXT,
+    )
 
 
 @functools.lru_cache
 def _get_image(
-    image_path: pathlib.Path, filename_prefix_no_ext: str, default_filename: str | None = None,
+    image_path: pathlib.Path,
+    filename_prefix_no_ext: str,
+    default_filename: str | None = None,
 ) -> str:
     if image_path.is_dir():
         path = next(image_path.glob("featured-image.*"), None)
@@ -398,20 +490,26 @@ def _get_image(
 
 
 def _generate_project_index(
-    repo: subete.Repo, project: subete.Project, previous: subete.Project, next: subete.Project,
+    repo: subete.Repo,
+    project: subete.Project,
+    previous: subete.Project,
+    next: subete.Project,
 ) -> None:
     """Creates an index file for a single project. The path is assumed
     to be `projects/project/index.md`.
 
     :param subete.Repo repo: the repo to pull from.
-    :param subete.Project project: the project to create the index file
-        for in the normalized form (e.g., hello-world).
+    :param subete.Project project: the project to create the index file for in
+        the normalized form (e.g., hello-world).
     :param subete.Project previous: the previous project alphabetically.
     :param subete.Project next: the next project alphabetically.
     """
     doc: snakemd.Document = snakemd.new_doc()
     project_name: str = project.name()
-    times: list[datetime | None] = [project.doc_created(), project.doc_modified()]
+    times: list[datetime | None] = [
+        project.doc_created(),
+        project.doc_modified(),
+    ]
     for language in repo:
         language: subete.Language
         for program in language:
@@ -426,7 +524,12 @@ def _generate_project_index(
         times=times,
         tags=[project.pathlike_name()],
     )
-    _generate_no_edit_note(doc, "projects", project.pathlike_name(), PROJECT_MD_FILENAMES)
+    _generate_no_edit_note(
+        doc,
+        "projects",
+        project.pathlike_name(),
+        PROJECT_MD_FILENAMES,
+    )
     doc.add_paragraph(
         f"Welcome to the {project.name()} page! Here, you'll find a description "
         f"of the project as well as a list of sample programs "
@@ -441,19 +544,42 @@ def _generate_project_index(
     _add_section(doc, "projects", project.pathlike_name(), "Requirements")
     _add_testing_section(doc, "projects", project.pathlike_name())
     if not project.has_testing():
-        doc.add_block(snakemd.Paragraph([
-            snakemd.Inline("Note:", bold=True),
-            f" {project.name()} is not currently tested by Glotter2. Consider contributing!",
-        ]))
+        doc.add_block(
+            snakemd.Paragraph(
+                [
+                    snakemd.Inline("Note:", bold=True),
+                    f" {project.name()} is not currently tested by Glotter2. "
+                    "Consider contributing!",
+                ],
+            ),
+        )
 
     _add_project_article_section(doc, repo, project)
     doc.add_horizontal_rule()
     doc.add_paragraph('<nav class="project-nav">')
     doc.add_paragraph('<div id="prev" markdown="1">')
-    doc.add_block(snakemd.Paragraph([snakemd.Inline(f"<-- Previous Project ({previous})", link=previous.requirements_url())]))
+    doc.add_block(
+        snakemd.Paragraph(
+            [
+                snakemd.Inline(
+                    f"<-- Previous Project ({previous})",
+                    link=previous.requirements_url(),
+                ),
+            ],
+        ),
+    )
     doc.add_paragraph("</div>")
     doc.add_paragraph('<div id="next" markdown="1">')
-    doc.add_block(snakemd.Paragraph([snakemd.Inline(f"Next Project ({next}) -->", link=next.requirements_url())]))
+    doc.add_block(
+        snakemd.Paragraph(
+            [
+                snakemd.Inline(
+                    f"Next Project ({next}) -->",
+                    link=next.requirements_url(),
+                ),
+            ],
+        ),
+    )
     doc.add_paragraph("</div>")
     doc.add_paragraph("</nav>")
     doc.dump("index", directory=f"docs/projects/{project.pathlike_name()}")
@@ -463,7 +589,8 @@ def _generate_language_index(language: subete.LanguageCollection) -> None:
     """Creates a language file for a single language. The path is assumed
     to be `languages/language/index.md`.
 
-    :param subete.LanguageCollection language: the collection sample programs for a language.
+    :param subete.LanguageCollection language: the collection sample programs
+        for a language.
     """
     doc: snakemd.Document = snakemd.new_doc()
     times: list[datetime | None] = []
@@ -483,7 +610,12 @@ def _generate_language_index(language: subete.LanguageCollection) -> None:
         authors=doc_authors,
         tags=[language.pathlike_name()],
     )
-    _generate_no_edit_note(doc, "languages", language.pathlike_name(), LANGUAGE_MD_FILENAMES)
+    _generate_no_edit_note(
+        doc,
+        "languages",
+        language.pathlike_name(),
+        LANGUAGE_MD_FILENAMES,
+    )
     doc.add_paragraph(
         f"Welcome to the {language_escaped} page! Here, you'll find a description "
         f"of the language as well as a list of sample programs "
@@ -496,7 +628,10 @@ def _generate_language_index(language: subete.LanguageCollection) -> None:
     _add_section(doc, "languages", language.pathlike_name(), "Description")
     _add_language_article_section(doc, repo, str(language))
     try:
-        doc.dump("index", directory=f"docs/languages/{language.pathlike_name()}")
+        doc.dump(
+            "index",
+            directory=f"docs/languages/{language.pathlike_name()}",
+        )
     except Exception:
         log.exception("Failed to write %s", language.pathlike_name())
 
@@ -504,7 +639,8 @@ def _generate_language_index(language: subete.LanguageCollection) -> None:
 def _get_language_image(language: subete.LanguageCollection) -> str | None:
     """Get image filename for a language
 
-    :param subete.LanguageCollection language: the collection sample programs for a language.
+    :param subete.LanguageCollection language: the collection sample programs
+        for a language.
     :return: Filename of image if found, None otherwise.
     """
     language_path = language.pathlike_name()
@@ -522,7 +658,10 @@ def _get_default_language_image() -> str | None:
 
     :return: Filename of image if found, None otherwise.
     """
-    return _get_image(pathlib.Path("sources/languages"), DEFAULT_LANGUAGE_IMAGE_NO_EXT)
+    return _get_image(
+        pathlib.Path("sources/languages"),
+        DEFAULT_LANGUAGE_IMAGE_NO_EXT,
+    )
 
 
 def generate_main_page(repo: subete.Repo) -> None:
@@ -559,30 +698,36 @@ def generate_main_page(repo: subete.Repo) -> None:
         times=times,
     )
     main_page.add_paragraph(
-        "Welcome to Sample Programs in Every Language, a collection of code snippets "
-        "in as many languages as possible. Thanks for taking an interest in our collection "
-        f"which currently contains {num_articles} articles written by {len(authors)} authors.",
+        "Welcome to Sample Programs in Every Language, a collection of code "
+        "snippets in as many languages as possible. Thanks for taking an "
+        "interest in our collection which currently contains "
+        f"{num_articles} articles written by {len(authors)} authors.",
     )
     paragraph = snakemd.Paragraph(
         [
             snakemd.Inline(
-                "If you'd like to contribute to this growing collection, check out our ",
+                "If you'd like to contribute to this growing collection, "
+                "check out our ",
             ),
             snakemd.Inline(
                 "contributing document",
                 link="https://github.com/TheRenegadeCoder/sample-programs/blob/master/.github/CONTRIBUTING.md",
             ),
             snakemd.Inline(
-                " for more information. In addition, you can explore our documentation which is organized by ",
+                " for more information. In addition, you can explore our documentation "
+                "which is organized by ",
             ),
             snakemd.Inline("project", link="/projects"),
             snakemd.Inline(" and by "),
             snakemd.Inline("language", link="/languages"),
-            snakemd.Inline(". If you don't find what you're look for, check out our list of related "),
+            snakemd.Inline(
+                ". If you don't find what you're look for, "
+                "check out our list of related ",
+            ),
             snakemd.Inline("open-source projects", link="/related"),
             snakemd.Inline(
-                ". Finally, if code isn't your thing but you'd still like to help, there are plenty "
-                "of other ways to ",
+                ". Finally, if code isn't your thing but you'd still like to "
+                "help, there are plenty of other ways to ",
             ),
             snakemd.Inline(
                 "support the project",
@@ -611,7 +756,12 @@ def generate_project_paths(repo: subete.Repo) -> None:
         log.info("Generating project paths for %s", str(project))
         path = pathlib.Path(f"docs/projects/{project.pathlike_name()}")
         path.mkdir(exist_ok=True, parents=True)
-        _generate_project_index(repo, project, projects[i - 1], projects[(i + 1) % len(projects)])
+        _generate_project_index(
+            repo,
+            project,
+            projects[i - 1],
+            projects[(i + 1) % len(projects)],
+        )
 
 
 def generate_sample_programs(repo: subete.Repo) -> None:
@@ -687,8 +837,10 @@ def generate_languages_index(repo: subete.Repo) -> None:
     verb = pluralize(num_languages, "is", "are")
     singular = pluralize(num_languages, "language")
     welcome_text = (
-        "Welcome to the Languages page! Here, you'll find a list of all of the languages represented in the collection. "
-        f"At this time, there {verb} {num_languages} {singular}, of which {repo.total_tests()} are tested"
+        "Welcome to the Languages page! Here, you'll find a list of all of "
+        "the languages represented in the collection. "
+        f"At this time, there {verb} {num_languages} {singular}, "
+        f"of which {repo.total_tests()} are tested"
     )
     untestables = repo.total_untestables()
     if untestables:
@@ -705,7 +857,8 @@ def generate_languages_index(repo: subete.Repo) -> None:
 
     language_index.add_heading("Language Collections by Letter", level=2)
     language_index.add_paragraph(
-        "To help you navigate the collection, the following languages are organized alphabetically and grouped by first letter. "
+        "To help you navigate the collection, the following languages are "
+        "organized alphabetically and grouped by first letter. "
         "To go to a particular letter, just click one of the links below.",
     )
     language_index.add_raw(_get_language_letter_links(repo))
@@ -716,33 +869,42 @@ def generate_languages_index(repo: subete.Repo) -> None:
         " &raquo;",
     ]
     language_index.add_block(
-        snakemd.Paragraph(["To return here, just click the ", *return_to_top, " link."]),
+        snakemd.Paragraph(
+            ["To return here, just click the ", *return_to_top, " link."],
+        ),
     )
 
     for letter in repo.sorted_language_letters():
         language_index.add_heading(letter.upper(), level=3)
-        languages: list[subete.LanguageCollection] = repo.languages_by_letter(letter)
+        languages: list[subete.LanguageCollection] = repo.languages_by_letter(
+            letter,
+        )
         snippets = sum(language.total_programs() for language in languages)
-        tests = sum(1 if language.has_testinfo()
-                    else 0 for language in languages)
-        untestables = sum(1 if language.has_untestable_info()
-                    else 0 for language in languages)
+        tests = sum(
+            1 if language.has_testinfo() else 0 for language in languages
+        )
+        untestables = sum(
+            1 if language.has_untestable_info() else 0 for language in languages
+        )
         verb = pluralize(tests, "is", "are")
         num_languages = len(languages)
         singular = pluralize(tests, "language")
         verb_untestables = pluralize(untestables, "is", "are")
         language_statement = (
-            f"The '{letter.upper()}' collection contains {num_languages} {singular}, "
-            f"of which {tests} {verb} tested"
+            f"The '{letter.upper()}' collection contains {num_languages} "
+            f"{singular}, of which {tests} {verb} tested"
         )
         if untestables:
-            language_statement += f", {untestables} {verb_untestables} untestable"
+            language_statement += (
+                f", {untestables} {verb_untestables} untestable"
+            )
 
-        language_index.add_paragraph(f"{language_statement}, and {snippets} code snippets.")
+        language_index.add_paragraph(
+            f"{language_statement}, and {snippets} code snippets.",
+        )
         languages.sort(key=lambda x: x.name().casefold())
         languages_list = [
-            _get_language_link_and_testability(x)
-            for x in languages
+            _get_language_link_and_testability(x) for x in languages
         ]
         language_index.add_block(snakemd.MDList(languages_list))
         language_index.add_block(snakemd.Paragraph(return_to_top))
@@ -751,16 +913,20 @@ def generate_languages_index(repo: subete.Repo) -> None:
 
 
 def _get_language_letter_links(repo: subete.Repo) -> str:
-    # Have to use raw HTML for this since there is no way to add a class attribute
-    # in Markdown
-    language_letter_links = [
-        '<ul class="letter-link">',
-    ] + [
-        f'    <li><a href="#{letter.lower()}">{letter.upper()}</a></li>'
-        for letter in repo.sorted_language_letters()
-    ] + [
-        "</ul>",
-    ]
+    # Have to use raw HTML for this since there is no way to add a class
+    # attribute in Markdown
+    language_letter_links = (
+        [
+            '<ul class="letter-link">',
+        ]
+        + [
+            f'    <li><a href="#{letter.lower()}">{letter.upper()}</a></li>'
+            for letter in repo.sorted_language_letters()
+        ]
+        + [
+            "</ul>",
+        ]
+    )
     return "\n".join(language_letter_links)
 
 
@@ -768,7 +934,10 @@ def _get_language_link_and_testability(
     language: subete.LanguageCollection,
 ) -> snakemd.Paragraph:
     language_escaped = _markdown_escape(language.name())
-    language_link = snakemd.Inline(language_escaped, link=language.lang_docs_url())
+    language_link = snakemd.Inline(
+        language_escaped,
+        link=language.lang_docs_url(),
+    )
     num_programs = language.total_programs()
     singular = pluralize(num_programs, "code snippet")
     phrase = f"{num_programs} {singular}"
@@ -787,15 +956,24 @@ def _get_language_link_and_testability(
     return snakemd.Paragraph([language_link, *testability])
 
 
-def _generate_language_breakdown_percentage(repo: subete.Repo, doc: snakemd.Document) -> None:
+def _generate_language_breakdown_percentage(
+    repo: subete.Repo,
+    doc: snakemd.Document,
+) -> None:
     language_info = sorted(
-        ((language.name(), language.percentage(), language.color()) for language in repo),
+        (
+            (language.name(), language.percentage(), language.color())
+            for language in repo
+        ),
         key=lambda x: (-x[1], x[0]),
     )
     max_language_percentage = language_info[0][1]
 
-    doc.add_paragraph("Here are the percentages for each language in the collection:")
-    doc.add_raw("""\
+    doc.add_paragraph(
+        "Here are the percentages for each language in the collection:",
+    )
+    doc.add_raw(
+        """\
 <details>
 <summary>Click here to expand or collapse...</summary>
 <table class="bar-graph">""",
@@ -803,8 +981,11 @@ def _generate_language_breakdown_percentage(repo: subete.Repo, doc: snakemd.Docu
 
     for language_name, percentage, color in language_info:
         bar_graph_width = 100.0 * percentage / max_language_percentage
-        bar_graph_style = f"width: {bar_graph_width:.2f}%; background-color: {color};"
-        doc.add_raw(f"""\
+        bar_graph_style = (
+            f"width: {bar_graph_width:.2f}%; background-color: {color};"
+        )
+        doc.add_raw(
+            f"""\
     <tr>
         <td class="right nowrap">{language_name}</td>
         <td class="right">{percentage:.2f}%</td>
@@ -812,7 +993,8 @@ def _generate_language_breakdown_percentage(repo: subete.Repo, doc: snakemd.Docu
     </tr>""",
         )
 
-    doc.add_raw("""\
+    doc.add_raw(
+        """\
 </table>
 </details>""",
     )
@@ -844,12 +1026,15 @@ def generate_projects_index(repo: subete.Repo) -> None:
         for project in repo.approved_projects()
     )
     projects_index.add_paragraph(
-        "Welcome to the Projects page! Here, you'll find a list of all of the projects represented in the collection. "
-        f"At this time, the repo supports {repo.total_approved_projects()} projects, of which {project_tests} are tested.",
+        "Welcome to the Projects page! Here, you'll find a list of all of the "
+        "projects represented in the collection. "
+        f"At this time, the repo supports {repo.total_approved_projects()} "
+        f"projects, of which {project_tests} are tested.",
     )
     projects_index.add_heading("Projects List", level=2)
     projects_index.add_paragraph(
-        "To help you navigate the collection, the following projects are organized alphabetically.",
+        "To help you navigate the collection, the following projects "
+        "are organized alphabetically.",
     )
     repo.approved_projects().sort(key=lambda x: x.name().casefold())
     projects = [
@@ -906,13 +1091,13 @@ def _copy_program_images(repo: subete.Repo) -> None:
             )
 
 
-
 def _is_image(path: pathlib.Path) -> bool:
     try:
         with Image.open(path):
             return True
     except OSError:
         return False
+
 
 def _copy_image(src_dir: str, dest_dir: str) -> None:
     src_dir_path = pathlib.Path(src_dir)
@@ -945,24 +1130,40 @@ def generate_images(repo: subete.Repo) -> int:
         return _generate_program_images(repo, temp_dir, status)
 
 
-def _generate_language_images(repo: subete.Repo, temp_dir: str, status_code: int) -> int:
+def _generate_language_images(
+    repo: subete.Repo,
+    temp_dir: str,
+    status_code: int,
+) -> int:
     status_code = _generate_image(
-        temp_dir, "sources/languages", DEFAULT_LANGUAGE_IMAGE_NO_EXT, status_code,
+        temp_dir,
+        "sources/languages",
+        DEFAULT_LANGUAGE_IMAGE_NO_EXT,
+        status_code,
     )
     language: subete.LanguageCollection
     for language in repo:
         language_path = language.pathlike_name()
         status_code = _generate_image(
-            temp_dir, f"sources/languages/{language_path}",
-            f"the-{language_path}-programming-language", status_code,
+            temp_dir,
+            f"sources/languages/{language_path}",
+            f"the-{language_path}-programming-language",
+            status_code,
         )
 
     return status_code
 
 
-def _generate_project_images(repo: subete.Repo, temp_dir: str, status_code: int) -> int:
+def _generate_project_images(
+    repo: subete.Repo,
+    temp_dir: str,
+    status_code: int,
+) -> int:
     status_code = _generate_image(
-        temp_dir, "sources/projects", DEFAULT_PROJECT_IMAGE_NO_EXT, status_code,
+        temp_dir,
+        "sources/projects",
+        DEFAULT_PROJECT_IMAGE_NO_EXT,
+        status_code,
     )
     for project in repo.approved_projects():
         project_path = project.pathlike_name()
@@ -974,9 +1175,16 @@ def _generate_project_images(repo: subete.Repo, temp_dir: str, status_code: int)
         )
 
 
-def _generate_program_images(repo:subete.Repo, temp_dir: str, status_code: int) -> int:
+def _generate_program_images(
+    repo: subete.Repo,
+    temp_dir: str,
+    status_code: int,
+) -> int:
     status_code = _generate_image(
-        temp_dir, "sources", DEFAULT_PROGRAM_IMAGE_NO_EXT, status_code,
+        temp_dir,
+        "sources",
+        DEFAULT_PROGRAM_IMAGE_NO_EXT,
+        status_code,
     )
     language: subete.LanguageCollection
     for language in repo:
@@ -994,7 +1202,12 @@ def _generate_program_images(repo:subete.Repo, temp_dir: str, status_code: int) 
     return status_code
 
 
-def _generate_image(temp_dir: str, src: str, dest_filename_no_ext: str, status_code: int) -> int:
+def _generate_image(
+    temp_dir: str,
+    src: str,
+    dest_filename_no_ext: str,
+    status_code: int,
+) -> int:
     src_image_path = next(pathlib.Path(src).glob("featured-image.*"), None)
     if not src_image_path:
         return status_code
@@ -1014,9 +1227,12 @@ def _generate_image(temp_dir: str, src: str, dest_filename_no_ext: str, status_c
         subprocess.run(
             [
                 executable,
-                "--path", str(src_image_path),
-                "--output", temp_dir,
-                "--logo", logo,
+                "--path",
+                str(src_image_path),
+                "--output",
+                temp_dir,
+                "--logo",
+                logo,
                 "--no_title",
             ],
             check=True,
@@ -1042,7 +1258,7 @@ def clean(folder: str) -> None:
         path.rmdir()
 
 
-def pluralize(count: int, singular: str, plural: str | None=None) -> str:
+def pluralize(count: int, singular: str, plural: str | None = None) -> str:
     """Pluralize an item
 
     :param count: Count of number of items
@@ -1062,10 +1278,18 @@ def _markdown_escape(s: str) -> str:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--local", "-l", action="store_true", help="Use local contents of website")
+    parser.add_argument(
+        "--local",
+        "-l",
+        action="store_true",
+        help="Use local contents of website",
+    )
     parsed_args = parser.parse_args()
 
-    logging.basicConfig(format="%(name)-12s | %(levelname)-8s | %(message)s", level=logging.INFO)
+    logging.basicConfig(
+        format="%(name)-12s | %(levelname)-8s | %(message)s",
+        level=logging.INFO,
+    )
     clean("docs/projects")
     clean("docs/languages")
     clean(AUTO_GEN_TEST_DOC_DIR)

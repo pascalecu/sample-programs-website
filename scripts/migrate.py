@@ -17,12 +17,15 @@ def project_section(section: str, bound: str) -> None:
             try:
                 start = doc.index(f"## {section}\n")
                 end = doc.index(f"## {bound}\n")
-                description = "".join(doc[start + 2: end - 1])
+                description = "".join(doc[start + 2 : end - 1])
 
                 dest_path = Path(f"sources/projects/{item_path.name}")
                 dest_path.mkdir(parents=True, exist_ok=True)
 
-                with (dest_path / f"{section.lower()}.md").open("w", encoding="utf-8") as desc:
+                with (dest_path / f"{section.lower()}.md").open(
+                    "w",
+                    encoding="utf-8",
+                ) as desc:
                     desc.write(description)
             except ValueError:
                 print(f"{item_path.name} has no {section}")
@@ -47,19 +50,24 @@ def language_section(bound: str) -> None:
         try:
             start = doc.index("---\n", 1)
             end = doc.index(f"## {bound}\n")
-            description = "".join(doc[start + 2: end - 1])
+            description = "".join(doc[start + 2 : end - 1])
 
             lang_name = post_path.stem.split("-")[-1]
             dest_path = Path(f"sources/languages/{lang_name}")
             dest_path.mkdir(parents=True, exist_ok=True)
 
-            with (dest_path / "description.md").open("w", encoding="utf-8") as desc:
+            with (dest_path / "description.md").open(
+                "w",
+                encoding="utf-8",
+            ) as desc:
                 desc.write(description)
         except ValueError:
             print(f"{post_path.name} has no {bound}")
         generate_front_matter(
             post_path,
-            Path(f"sources/languages/{post_path.stem.split('-')[-1]}/front_matter.yaml"),
+            Path(
+                f"sources/languages/{post_path.stem.split('-')[-1]}/front_matter.yaml",
+            ),
         )
 
 
@@ -108,7 +116,6 @@ def program_section(section: str, bound: str) -> None:
                 post_path,
                 dest_dir / "front_matter.yaml",
             )
-
 
 
 def generate_front_matter(input_path: Path, output_path: Path) -> None:
