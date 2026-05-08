@@ -1,5 +1,10 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from datetime import datetime
+    from collections.abc import Iterable
+
 import argparse
-import datetime
 import functools
 import logging
 import os
@@ -8,7 +13,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from collections.abc import Iterable
 
 import glotter
 import snakemd
@@ -159,7 +163,7 @@ def _split_text(text: str) -> tuple[str, str]:
 def _generate_front_matter(
     doc: snakemd.Document,
     title: str,
-    times: list[datetime.datetime | None] | None = None,
+    times: list[datetime | None] | None = None,
     image: str | None = None,
     authors: set[str] | None = None,
     tags: Iterable[str] | None = None,
@@ -168,7 +172,7 @@ def _generate_front_matter(
 
     :param snakemd.Document doc: the document to add the front matter to.
     :param str title: the title of the document.
-    :param Optional[List[Optional[datetime.datetime]]] times: optional list of
+    :param Optional[List[Optional[datetime]]] times: optional list of
         date/times that may be `None`.
     :param str image: optional filename of the image.
     :param Set[str] authors: optional list of authors
@@ -290,9 +294,9 @@ def _generate_sample_program_index(program: subete.SampleProgram, path: pathlib.
     doc.add_paragraph("If you see anything you'd like to change or update, please consider contributing.") \
         .insert_link("please consider contributing", "https://github.com/TheRenegadeCoder/sample-programs")
 
-    created_at: datetime.datetime = program.created()
-    modified: datetime.datetime = program.modified()
-    doc_modified: datetime.datetime | None = program.doc_modified()
+    created_at: datetime = program.created()
+    modified: datetime = program.modified()
+    doc_modified: datetime | None = program.doc_modified()
     if created_at != modified and doc_modified and doc_modified < modified:
         datetime_format = "%b %d %Y %H:%M:%S"
         doc.add_paragraph(
@@ -321,7 +325,7 @@ def _generate_sample_program_index(program: subete.SampleProgram, path: pathlib.
         log.exception(f"Failed to write {path}")
 
 
-def _get_program_datetimes(program: subete.SampleProgram) -> list[datetime.datetime | None]:
+def _get_program_datetimes(program: subete.SampleProgram) -> list[datetime | None]:
     """Get list of date/times for a sample program.
 
     :param subete.SampleProgram program: Sample program to get date/times for.
@@ -407,7 +411,7 @@ def _generate_project_index(
     """
     doc: snakemd.Document = snakemd.new_doc()
     project_name: str = project.name()
-    times: list[datetime.datetime | None] = [project.doc_created(), project.doc_modified()]
+    times: list[datetime | None] = [project.doc_created(), project.doc_modified()]
     for language in repo:
         language: subete.Language
         for program in language:
@@ -462,7 +466,7 @@ def _generate_language_index(language: subete.LanguageCollection) -> None:
     :param subete.LanguageCollection language: the collection sample programs for a language.
     """
     doc: snakemd.Document = snakemd.new_doc()
-    times: list[datetime.datetime | None] = []
+    times: list[datetime | None] = []
     for program in language:
         program: subete.SampleProgram
         times += _get_program_datetimes(program)
@@ -527,7 +531,7 @@ def generate_main_page(repo: subete.Repo) -> None:
     :param subete.Repo repo: the repo to pull from.
     """
     authors: set[str] = set()
-    times: list[datetime.datetime | None] = []
+    times: list[datetime | None] = []
     num_articles = 0
     for language in repo:
         language: subete.LanguageCollection
@@ -665,7 +669,7 @@ def generate_languages_index(repo: subete.Repo) -> None:
     """
     log.info("Generating language index")
     language_index_path = pathlib.Path("docs/languages")
-    times: list[datetime.datetime | None] = []
+    times: list[datetime | None] = []
     for language in repo:
         language: subete.LanguageCollection
         for program in language:
@@ -822,7 +826,7 @@ def generate_projects_index(repo: subete.Repo) -> None:
     log.info("Generating projects index")
     projects_index_path = pathlib.Path("docs/projects")
     projects_index: snakemd.Document = snakemd.new_doc()
-    times: list[datetime.datetime | None] = []
+    times: list[datetime | None] = []
     for language in repo:
         language: subete.LanguageCollection
         for program in language:
