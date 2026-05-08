@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from datetime import datetime
     from collections.abc import Iterable
+    from datetime import datetime
 
 import argparse
 import functools
@@ -46,10 +46,10 @@ def _add_section(doc: snakemd.Document, source: str, source_instance: str, secti
     fp = pathlib.Path(
         f"sources/{source}/{source_instance}/{section.lower().replace(' ', '-')}.md")
     if fp.exists():
-        log.info(f"Adding {section} section to document from source, {fp}")
+        log.info("Adding %s section to document from source, %s", section, fp)
         doc.add_raw(fp.read_text(encoding="utf-8"))
     else:
-        log.warning(f"Failed to find {section} in {fp}")
+        log.warning("Failed to find %s in %s", section, fp)
         doc.add_paragraph(
             f"No '{section}' section available. Please consider contributing.",
         ).insert_link("Please consider contributing", "https://github.com/TheRenegadeCoder/sample-programs-website")
@@ -87,7 +87,7 @@ def _add_project_article_section(doc: snakemd.Document, repo: subete.Repo, proje
     :param subete.Repo repo: the repo to pull from.
     :param subete.Project project: the project to add to the document.
     """
-    log.info(f"Generating article section of {project}")
+    log.info("Generating article section of %s", project)
     doc.add_heading("Articles", level=2)
     articles = []
     for lang in repo:
@@ -110,7 +110,7 @@ def _add_project_article_section(doc: snakemd.Document, repo: subete.Repo, proje
         doc.add_paragraph(f"There {verb} {num_articles} {word}:")
         doc.add_block(snakemd.MDList(articles))
     else:
-        log.warning(f"Failed to find any articles for {project}")
+        log.warning("Failed to find any articles for %s", project)
         doc.add_paragraph(
             "No articles available. Please consider contributing.",
         ).insert_link("Please consider contributing", "https://github.com/TheRenegadeCoder/sample-programs-website")
@@ -322,7 +322,7 @@ def _generate_sample_program_index(program: subete.SampleProgram, path: pathlib.
     try:
         doc.dump("index", directory=str(path))
     except Exception:
-        log.exception(f"Failed to write {path}")
+        log.exception("Failed to write %s", path)
 
 
 def _get_program_datetimes(program: subete.SampleProgram) -> list[datetime | None]:
@@ -363,7 +363,7 @@ def _get_program_image(program: subete.SampleProgram) -> str | None:
 def _get_project_image(project: subete.Project) -> str | None:
     """Gets the filename of the image for a project
 
-    :param subete.Project project: the project to create the index file 
+    :param subete.Project project: the project to create the index file
         for in the normalized form (e.g., hello-world).
     :return: Filename of image if found, None otherwise.
     """
@@ -401,10 +401,10 @@ def _generate_project_index(
     repo: subete.Repo, project: subete.Project, previous: subete.Project, next: subete.Project,
 ) -> None:
     """Creates an index file for a single project. The path is assumed
-    to be `projects/project/index.md`. 
+    to be `projects/project/index.md`.
 
     :param subete.Repo repo: the repo to pull from.
-    :param subete.Project project: the project to create the index file 
+    :param subete.Project project: the project to create the index file
         for in the normalized form (e.g., hello-world).
     :param subete.Project previous: the previous project alphabetically.
     :param subete.Project next: the next project alphabetically.
@@ -498,7 +498,7 @@ def _generate_language_index(language: subete.LanguageCollection) -> None:
     try:
         doc.dump("index", directory=f"docs/languages/{language.pathlike_name()}")
     except Exception:
-        log.exception(f"Failed to write {language.pathlike_name()}")
+        log.exception("Failed to write %s", language.pathlike_name())
 
 
 def _get_language_image(language: subete.LanguageCollection) -> str | None:
@@ -633,7 +633,7 @@ def generate_sample_programs(repo: subete.Repo) -> None:
 
 def generate_language_paths(repo: subete.Repo) -> None:
     """Creates the language directory which contains all of the language folders
-    and index.md files. 
+    and index.md files.
 
     :param subete.Repo repo: the repo to pull from.
     """
@@ -651,7 +651,7 @@ def generate_auto_gen_test_docs(repo: subete.Repo) -> None:
     :param subete.Repo repo: the repo to pull from.
     """
     log.info("Generating test documentation")
-    curr_dir = os.getcwd()
+    curr_dir = pathlib.Path.cwd()
     doc_dir = pathlib.Path(AUTO_GEN_TEST_DOC_DIR).absolute()
     os.chdir(repo.sample_programs_repo_dir())
     glotter.generate_test_docs(
@@ -716,7 +716,7 @@ def generate_languages_index(repo: subete.Repo) -> None:
         " &raquo;",
     ]
     language_index.add_block(
-        snakemd.Paragraph(["To return here, just click the "] + return_to_top + [" link."]),
+        snakemd.Paragraph(["To return here, just click the ", *return_to_top, " link."]),
     )
 
     for letter in repo.sorted_language_letters():
@@ -784,7 +784,7 @@ def _get_language_link_and_testability(
     else:
         testability = [snakemd.Inline(f" {phrase}, (untested)")]
 
-    return snakemd.Paragraph([language_link] + testability)
+    return snakemd.Paragraph([language_link, *testability])
 
 
 def _generate_language_breakdown_percentage(repo: subete.Repo, doc: snakemd.Document) -> None:
@@ -808,7 +808,7 @@ def _generate_language_breakdown_percentage(repo: subete.Repo, doc: snakemd.Docu
     <tr>
         <td class="right nowrap">{language_name}</td>
         <td class="right">{percentage:.2f}%</td>
-        <td class="bar-graph"><div style="{bar_graph_style}"></div></td> 
+        <td class="bar-graph"><div style="{bar_graph_style}"></div></td>
     </tr>""",
         )
 
@@ -926,10 +926,10 @@ def _copy_image(src_dir: str, dest_dir: str) -> None:
         if path.is_file() and path.stem != "featured-image" and _is_image(path)
     ]
     if src_image_paths:
-        os.makedirs(dest_dir, exist_ok=True)
+        dest_dir_path.mkdir(parents=True, exist_ok=True)
         for src_image_path in src_image_paths:
             dest_image_path = dest_dir_path / src_image_path.name
-            log.info("Copying image %s -> %s", str(src_image_path), str(dest_image_path))
+            log.info("Copying image %s -> %s", src_image_path, dest_image_path)
             shutil.copy(src_image_path, dest_image_path)
 
 
@@ -940,11 +940,9 @@ def generate_images(repo: subete.Repo) -> int:
     :return: 0 if no error, non-zero otherwise
     """
     with tempfile.TemporaryDirectory() as temp_dir:
-        status_code = 0
-        status_code = _generate_language_images(repo, temp_dir, status_code)
-        status_code = _generate_project_images(repo, temp_dir, status_code)
-        status_code = _generate_program_images(repo, temp_dir, status_code)
-    return status_code
+        status = _generate_language_images(repo, temp_dir, 0)
+        status = _generate_project_images(repo, temp_dir, status)
+        return _generate_program_images(repo, temp_dir, status)
 
 
 def _generate_language_images(repo: subete.Repo, temp_dir: str, status_code: int) -> int:
@@ -1005,11 +1003,17 @@ def _generate_image(temp_dir: str, src: str, dest_filename_no_ext: str, status_c
     logo = str(dest / "icon-small.png")
 
     dest_image_path = dest / f"{dest_filename_no_ext}{src_image_path.suffix}"
-    log.info("Processing %s -> %s", str(src_image_path), str(dest_image_path))
+    log.info("Processing %s -> %s", src_image_path, dest_image_path)
+
+    executable = shutil.which("image-titler")
+    if not executable:
+        log.error("Could not find 'image-titler' in PATH")
+        return 1
+
     try:
         subprocess.run(
             [
-                "image-titler",
+                executable,
                 "--path", str(src_image_path),
                 "--output", temp_dir,
                 "--logo", logo,
@@ -1020,15 +1024,14 @@ def _generate_image(temp_dir: str, src: str, dest_filename_no_ext: str, status_c
         temp_image_path = next(pathlib.Path(temp_dir).iterdir())
         shutil.move(temp_image_path, dest_image_path)
     except subprocess.CalledProcessError as exc:
-        log.error("image-titler exited with %d status", exc.returncode)
+        log.exception("image-titler exited with %d status", exc.returncode)
         status_code = 1
 
     return status_code
 
 
 def clean(folder: str) -> None:
-    """Deletes the contents of the docs directory.
-    """
+    """Deletes the contents of the docs directory."""
     path = pathlib.Path(folder)
     if path.exists():
         for child in path.glob("*"):
