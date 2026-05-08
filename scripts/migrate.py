@@ -60,7 +60,7 @@ def program_section(section: str, bound: str):
 
 
 def generate_front_matter(input: Path, output: Path):
-    with open(input, "r", encoding="utf-8") as f:
+    with open(input, encoding="utf-8") as f:
         doc = f.readlines()
     start = doc.index("---\n")
     end = doc.index("---\n", start + 1)

@@ -1,4 +1,4 @@
-from typing import Optional, Iterable, List, Set
+from typing import Iterable
 import argparse
 import datetime
 import functools
@@ -162,10 +162,10 @@ def _split_text(text: str) -> tuple[str, str]:
 def _generate_front_matter(
     doc: snakemd.Document,
     title: str,
-    times: Optional[List[Optional[datetime.datetime]]] = None,
-    image: Optional[str] = None,
-    authors: Optional[Set[str]] = None,
-    tags: Optional[Iterable[str]] = None
+    times: list[datetime.datetime | None] | None = None,
+    image: str | None = None,
+    authors: set[str] | None = None,
+    tags: Iterable[str] | None = None
 ):
     """
     Generates front matter and adds it to the document.
@@ -207,7 +207,7 @@ def _generate_front_matter(
 
 
 def _generate_no_edit_note(
-    doc: snakemd.Document, source: str, source_instance: str, filenames: List[str]
+    doc: snakemd.Document, source: str, source_instance: str, filenames: list[str]
 ):
     """
     Generates "DO NOT EDIT" note
@@ -245,8 +245,8 @@ def _generate_sample_program_index(program: subete.SampleProgram, path: pathlib.
     root_path = pathlib.Path(
         f"programs/{program.project_pathlike_name()}/{program.language_pathlike_name()}"
     )
-    authors: Set[str] = program.authors()
-    doc_authors: Set[str] = program.doc_authors()
+    authors: set[str] = program.authors()
+    doc_authors: set[str] = program.doc_authors()
     _generate_front_matter(
         doc,
         str(program),
@@ -290,7 +290,7 @@ def _generate_sample_program_index(program: subete.SampleProgram, path: pathlib.
     )
     _add_authors_to_doc(doc, authors)
 
-    doc_authors: Set[str] = program.doc_authors()
+    doc_authors: set[str] = program.doc_authors()
     if doc_authors:
         doc.add_paragraph("This article was written by:")
         _add_authors_to_doc(doc, doc_authors)
@@ -300,7 +300,7 @@ def _generate_sample_program_index(program: subete.SampleProgram, path: pathlib.
 
     created_at: datetime.datetime = program.created()
     modified: datetime.datetime = program.modified()
-    doc_modified: Optional[datetime.datetime] = program.doc_modified()
+    doc_modified: datetime.datetime | None = program.doc_modified()
     if created_at != modified and doc_modified and doc_modified < modified:
         datetime_format = "%b %d %Y %H:%M:%S"
         doc.add_paragraph(
@@ -329,7 +329,7 @@ def _generate_sample_program_index(program: subete.SampleProgram, path: pathlib.
         log.exception(f"Failed to write {path}")
 
 
-def _get_program_datetimes(program: subete.SampleProgram) -> List[Optional[datetime.datetime]]:
+def _get_program_datetimes(program: subete.SampleProgram) -> list[datetime.datetime | None]:
     """
     Get list of date/times for a sample program.
 
@@ -340,7 +340,7 @@ def _get_program_datetimes(program: subete.SampleProgram) -> List[Optional[datet
     return [program.created(), program.modified(), program.doc_created(), program.doc_modified()]
 
 
-def _add_authors_to_doc(doc: snakemd.Document, authors: Set[str]):
+def _add_authors_to_doc(doc: snakemd.Document, authors: set[str]):
     """
     Add a sorted list of authors to a document.
 
@@ -350,7 +350,7 @@ def _add_authors_to_doc(doc: snakemd.Document, authors: Set[str]):
     doc.add_block(snakemd.MDList(sorted(authors, key=lambda x: x.casefold())))
 
 
-def _get_program_image(program: subete.SampleProgram) -> Optional[str]:
+def _get_program_image(program: subete.SampleProgram) -> str | None:
     """
     Gets the filename of the image for a sample program
 
@@ -367,8 +367,8 @@ def _get_program_image(program: subete.SampleProgram) -> Optional[str]:
     )
 
 
-@functools.lru_cache()
-def _get_project_image(project: subete.Project) -> Optional[str]:
+@functools.lru_cache
+def _get_project_image(project: subete.Project) -> str | None:
     """
     Gets the filename of the image for a project
 
@@ -386,8 +386,8 @@ def _get_project_image(project: subete.Project) -> Optional[str]:
     )
 
 
-@functools.lru_cache()
-def _get_default_project_image() -> Optional[str]:
+@functools.lru_cache
+def _get_default_project_image() -> str | None:
     """
     Gets the filename of the default project image
 
@@ -396,9 +396,9 @@ def _get_default_project_image() -> Optional[str]:
     return _get_image(pathlib.Path("sources/projects"), DEFAULT_PROJECT_IMAGE_NO_EXT)
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def _get_image(
-    image_path: pathlib.Path, filename_prefix_no_ext: str, default_filename: Optional[str] = None
+    image_path: pathlib.Path, filename_prefix_no_ext: str, default_filename: str | None = None
 ) -> str:
     if image_path.is_dir():
         path = next(image_path.glob("featured-image.*"), None)
@@ -423,7 +423,7 @@ def _generate_project_index(
     """
     doc: snakemd.Document = snakemd.new_doc()
     project_name: str = project.name()
-    times: List[Optional[datetime.datetime]] = [project.doc_created(), project.doc_modified()]
+    times: list[datetime.datetime | None] = [project.doc_created(), project.doc_modified()]
     for language in repo:
         language: subete.Language
         for program in language:
@@ -444,7 +444,7 @@ def _generate_project_index(
         f"of the project as well as a list of sample programs "
         f"written in various languages."
     )
-    doc_authors: Set[str] = project.doc_authors()
+    doc_authors: set[str] = project.doc_authors()
     if doc_authors:
         doc.add_paragraph("This article was written by:")
         _add_authors_to_doc(doc, doc_authors)
@@ -479,14 +479,14 @@ def _generate_language_index(language: subete.LanguageCollection):
     :param subete.LanguageCollection language: the collection sample programs for a language.
     """
     doc: snakemd.Document = snakemd.new_doc()
-    times: List[Optional[datetime.datetime]] = []
+    times: list[datetime.datetime | None] = []
     for program in language:
         program: subete.SampleProgram
         times += _get_program_datetimes(program)
 
     times += [language.doc_created(), language.doc_modified()]
 
-    doc_authors: Set[str] = language.doc_authors()
+    doc_authors: set[str] = language.doc_authors()
     language_escaped = _markdown_escape(language.name())
     _generate_front_matter(
         doc,
@@ -514,7 +514,7 @@ def _generate_language_index(language: subete.LanguageCollection):
         log.exception(f"Failed to write {language.pathlike_name()}")
 
 
-def _get_language_image(language: subete.LanguageCollection) -> Optional[str]:
+def _get_language_image(language: subete.LanguageCollection) -> str | None:
     """
     Get image filename for a language
 
@@ -530,8 +530,8 @@ def _get_language_image(language: subete.LanguageCollection) -> Optional[str]:
     )
 
 
-@functools.lru_cache()
-def _get_default_language_image() -> Optional[str]:
+@functools.lru_cache
+def _get_default_language_image() -> str | None:
     """
     Get default language image filename
 
@@ -547,8 +547,8 @@ def generate_main_page(repo: subete.Repo):
 
     :param subete.Repo repo: the repo to pull from.
     """
-    authors: Set[str] = set()
-    times: List[Optional[datetime.datetime]] = []
+    authors: set[str] = set()
+    times: list[datetime.datetime | None] = []
     num_articles = 0
     for language in repo:
         language: subete.LanguageCollection
@@ -691,7 +691,7 @@ def generate_languages_index(repo: subete.Repo):
     """
     log.info("Generating language index")
     language_index_path = pathlib.Path("docs/languages")
-    times: List[Optional[datetime.datetime]] = []
+    times: list[datetime.datetime | None] = []
     for language in repo:
         language: subete.LanguageCollection
         for program in language:
@@ -849,7 +849,7 @@ def generate_projects_index(repo: subete.Repo):
     log.info("Generating projects index")
     projects_index_path = pathlib.Path("docs/projects")
     projects_index: snakemd.Document = snakemd.new_doc()
-    times: List[Optional[datetime.datetime]] = []
+    times: list[datetime.datetime | None] = []
     for language in repo:
         language: subete.LanguageCollection
         for program in language:
@@ -1058,7 +1058,7 @@ def clean(folder: str):
         path.rmdir()
 
 
-def pluralize(count: int, singular: str, plural: Optional[str]=None):
+def pluralize(count: int, singular: str, plural: str | None=None):
     """
     Pluralize an item
 
