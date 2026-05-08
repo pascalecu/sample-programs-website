@@ -14,7 +14,7 @@ import snakemd
 import subete
 import glotter
 import yaml
-from subete import imghdr
+from PIL import Image
 
 log = logging.getLogger("automate")
 AUTO_GEN_TEST_DOC_DIR = "sources/generated"
@@ -930,6 +930,14 @@ def _copy_program_images(repo: subete.Repo):
             )
 
 
+
+def _is_image(path: pathlib.Path) -> bool:
+    try:
+        with Image.open(path):
+            return True
+    except OSError:
+        return False
+    
 def _copy_image(src_dir: str, dest_dir: str):
     src_dir_path = pathlib.Path(src_dir)
     dest_dir_path = pathlib.Path(dest_dir)
@@ -939,7 +947,7 @@ def _copy_image(src_dir: str, dest_dir: str):
     src_image_paths = [
         path
         for path in src_dir_path.iterdir()
-        if path.is_file() and path.stem != "featured-image" and imghdr.what(path)
+        if path.is_file() and path.stem != "featured-image" and _is_image(path)
     ]
     if src_image_paths:
         os.makedirs(dest_dir, exist_ok=True)
