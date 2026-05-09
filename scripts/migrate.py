@@ -1,4 +1,7 @@
+import logging
 from pathlib import Path
+
+log = logging.getLogger(__name__)
 
 
 def project_section(section: str, bound: str) -> None:
@@ -28,7 +31,7 @@ def project_section(section: str, bound: str) -> None:
                 ) as desc:
                     desc.write(description)
             except ValueError:
-                print(f"{item_path.name} has no {section}")
+                log.warning("%s has no %s", item_path.name, section)
             generate_front_matter(
                 index_file,
                 Path(f"sources/projects/{item_path.name}/front_matter.yaml"),
@@ -62,7 +65,7 @@ def language_section(bound: str) -> None:
             ) as desc:
                 desc.write(description)
         except ValueError:
-            print(f"{post_path.name} has no {bound}")
+            log.warning("%s has no %s", post_path.name, bound)
         generate_front_matter(
             post_path,
             Path(
@@ -110,7 +113,12 @@ def program_section(section: str, bound: str) -> None:
                     desc.write(description)
 
             except ValueError:
-                print(f"{project_dir.name}:{post_path.name} has no {section}")
+                log.warning(
+                    "%s:%s has no %s",
+                    project_dir.name,
+                    post_path.name,
+                    section,
+                )
 
             generate_front_matter(
                 post_path,
@@ -132,9 +140,9 @@ def generate_front_matter(input_path: Path, output_path: Path) -> None:
         with output_path.open("w", encoding="utf-8") as f:
             f.write(front_matter)
     except ValueError:
-        print(f"Warning: {input_path} has no valid YAML front matter")
-    except Exception as e:
-        print(f"Error processing {input_path}: {e}")
+        log.warning("Warning: %s has no valid YAML front matter", input_path)
+    except Exception:
+        log.exception("Error processing %s", input_path)
 
 
 if __name__ == "__main__":
